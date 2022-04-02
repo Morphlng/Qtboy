@@ -1,6 +1,7 @@
-#include <iomanip>
 #include <chrono>
 #include <ctime>
+#include <iomanip>
+#include <sstream>
 
 #include "processor.hpp"
 #include "register_pair.hpp"

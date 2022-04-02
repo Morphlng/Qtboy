@@ -6,7 +6,6 @@
 #include <bitset>
 #include <cmath>
 #include <cstddef>
-#include <SDL.h>
 #include <chrono>
 
 using namespace qtboy;

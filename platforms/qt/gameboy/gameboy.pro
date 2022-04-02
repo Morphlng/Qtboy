@@ -9,9 +9,9 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 INCLUDEPATH += ../../../include \
                ../include \
-               "C:\Program Files\mingw-w64\dev_lib\include\SDL2" # path to SDL2 includes
+               # "C:\Program Files\mingw-w64\dev_lib\include\SDL2" # path to SDL2 includes
 
-LIBS += -L"C:\Program Files\mingw-w64\dev_lib\lib" -lmingw32 -lSDL2main -lSDL2 # path to SDL2 libraries
+LIBS += -L"C:\Program Files\mingw-w64\dev_lib\lib" # -lmingw32 -lSDL2main -lSDL2 # path to SDL2 libraries
 
 SOURCES += \
     ../../../src/apu.cpp \

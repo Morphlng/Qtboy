@@ -2,50 +2,48 @@
 #include "raw_audio.hpp"
 #include <iostream>
 
-#include <QAudioOutput>
-#include <QBuffer>
-#include <QTimer>
 #include <QDebug>
-
-#include <SDL_audio.h>
 
 Qt_speaker::Qt_speaker(QObject *parent)
     : QObject {parent}
 {
-    SDL_AudioSpec desired_spec, actual_spec;
+    QAudioFormat format;
+    format.setSampleRate(44100);
+    format.setChannelCount(2);
+    format.setSampleSize(16); // or 8 with UnSignedInt
+    format.setCodec("audio/pcm");
+    format.setByteOrder(QAudioFormat::LittleEndian);
+    format.setSampleType(QAudioFormat::SignedInt);
 
-    SDL_zero(desired_spec);
-    desired_spec.freq = 65536;
-    desired_spec.format = AUDIO_U8;
-    desired_spec.channels = 2;
-    desired_spec.samples = 1024;
-    desired_spec.callback = nullptr;
-    // allow changing the sample rate for turbo mode
-    device_id_ = SDL_OpenAudioDevice(NULL, 0, &desired_spec, &actual_spec, SDL_AUDIO_ALLOW_FREQUENCY_CHANGE);
-
-    if (device_id_ == 0)
-    {
-        qWarning() << "Could not initialize audio device: " << SDL_GetError();
+    QAudioDeviceInfo dev = QAudioDeviceInfo::defaultOutputDevice();
+    if (!dev.isFormatSupported(format)) {
+        format = dev.nearestFormat(format);
     }
 
-    // Start the audio queue.
-    SDL_PauseAudioDevice(device_id_, 0);
-}
+    m_audioOutput = new QAudioOutput(dev, format, this);
+    qreal linearVolume = QAudio::convertVolume(90 / qreal(100),
+                                               QAudio::LogarithmicVolumeScale,
+                                               QAudio::LinearVolumeScale);
 
-Qt_speaker::~Qt_speaker()
-{
-    SDL_CloseAudioDevice(device_id_);
+    m_audioOutput->setVolume(linearVolume);
+
+    qAudioDevice = m_audioOutput->start(); // using push mode
 }
 
 void Qt_speaker::queue_samples(const qtboy::Raw_audio &a)
 {
-    // device_->write(reinterpret_cast<const char *>(a.data()), a.size());
-    SDL_QueueAudio(device_id_, a.data(), a.size());
+    const char *buffer = (char *) a.data();
+    qint64 bytesAvaliable = a.size();
+    while (bytesAvaliable) {
+        qint64 bytesWritten = qAudioDevice->write(buffer, bytesAvaliable);
+        bytesAvaliable -= bytesWritten;
+        buffer += bytesWritten;
+    }
 }
 
 int Qt_speaker::samples_queued()
 {
-    return SDL_GetQueuedAudioSize(device_id_);
+    return 0;
 }
 
 void Qt_speaker::clear_samples()

@@ -12,8 +12,6 @@
 #include "exception.hpp"
 #include "disassembler.hpp"
 
-#include <SDL.h>
-
 using std::chrono::duration_cast;
 using std::chrono::nanoseconds;
 
